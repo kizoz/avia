@@ -16,6 +16,8 @@ import com.example.demo.enums.FlightClass;
 import com.example.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,9 @@ public class FlightService {
 
     private final BookedFlightRepo bookedFlightRepo;
 
+    private final CacheManager cacheManager;
+
+    @Cacheable(value = "flights")
     public List<FlightOutPayload> getFlights(){
         log.info("User gets all available flights");
         return flightRepo.findAll().stream().map(this::convertToOutPayload).collect(Collectors.toList());
@@ -77,6 +82,7 @@ public class FlightService {
         bookedFlightRepo.save(bookedFlight);
     }
 
+    @Cacheable(value = "flight-info")
     public FlightInfo flightInfo(){
         return new FlightInfo(getFlightTime(), getDestinations(), getFlights());
     }
