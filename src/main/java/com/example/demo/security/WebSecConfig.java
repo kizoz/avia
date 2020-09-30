@@ -1,7 +1,7 @@
 
 package com.example.demo.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.config.SecretKey;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,11 +16,12 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final SecretKey secretKey;
 
-    @Autowired
-    public WebSecConfig(UserDetailsServiceImpl userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public WebSecConfig(UserDetailsServiceImpl userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, SecretKey secretKey) {
         this.userDetailsService = userDetailsService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.secretKey = secretKey;
     }
 
     @Override
@@ -35,8 +36,8 @@ public class WebSecConfig extends WebSecurityConfigurerAdapter {
                     .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                    .addFilter(new JwtAuthenticationFilter(authenticationManager()))
-                    .addFilterAfter(new JwtVerifier(), JwtAuthenticationFilter.class)
+                    .addFilter(new JwtAuthenticationFilter(authenticationManager(), secretKey))
+                    .addFilterAfter(new JwtVerifier(secretKey), JwtAuthenticationFilter.class)
                 .authorizeRequests()
                     .antMatchers("/",  "/reg").permitAll()
                     .antMatchers("/a/**").hasAuthority("ADMIN")

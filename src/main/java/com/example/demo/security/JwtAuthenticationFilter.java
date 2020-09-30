@@ -1,11 +1,13 @@
 package com.example.demo.security;
 
+import com.example.demo.config.SecretKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
@@ -26,12 +29,7 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
-
-    public String jwtKey = "eyJhbGciOiJIUkb2DKl-cCBiLbMDovI75f8mzUxMdXRdWICJhaAFmL7bIqYrkFMMob3JpdGllcyIiJ9eyJzupbG1pbm6IkFETUlOIn0U-mjXwfEUZiOiJhZUsy7yDVIwCpxCYbfOLejnDKVkjQbj4-ZUfLRv";
-
-    public Key getKey() {
-        return Keys.hmacShaKeyFor(jwtKey.getBytes());
-    }
+    private final SecretKey secretKey;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
@@ -57,7 +55,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .claim("authorities", authResult.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(",")))
-                .signWith(getKey())
+                .signWith(secretKey.jwtKey())
                 .compact();
 
         response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
